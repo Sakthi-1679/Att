@@ -1,3 +1,4 @@
+import datetime
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from crispy_forms.helper import FormHelper
@@ -113,7 +114,6 @@ class EditRequestForm(forms.ModelForm):
 
 class ReportFilterForm(forms.Form):
     MONTH_CHOICES = [(i, f"{i:02d}") for i in range(1, 13)]
-    import datetime
     YEAR_CHOICES = [(y, y) for y in range(2020, datetime.date.today().year + 2)]
 
     department = forms.ModelChoiceField(

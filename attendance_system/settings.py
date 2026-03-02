@@ -2,15 +2,22 @@
 Django settings for attendance_system project.
 """
 
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-attendance-system-secret-key-change-in-production-2024'
+# SECURITY WARNING: keep the secret key used in production secret!
+# Set SECRET_KEY environment variable in production.
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-attendance-system-secret-key-change-in-production-2024'
+)
 
-DEBUG = True
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',

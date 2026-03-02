@@ -30,7 +30,7 @@
                     <td>
                         <span class="badge
                             {% if u.role == 'admin' %}bg-dark
-                            {% elif u.role == 'coordinator' %}bg-purple
+                            {% elif u.role == 'coordinator' %}bg-secondary
                             {% else %}bg-success{% endif %}">
                             {{ u.get_role_display }}
                         </span>
