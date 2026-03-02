@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Daily Summary{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-calendar-day me-2 text-primary"></i>Daily Attendance Summary</h4>
+        <small class="text-muted">{{ selected_date|date:"l, d F Y" }}</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'export_excel' %}?start_date={{ selected_date }}&end_date={{ selected_date }}" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-file-earmark-excel me-1"></i>Export
+        </a>
+    </div>
+</div>
+
+<!-- Date selector -->
+<div class="card mb-4">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex gap-3 align-items-end">
+            <div>
+                <label class="form-label mb-1 small fw-semibold">Select Date</label>
+                <input type="date" name="date" class="form-control form-control-sm" value="{{ selected_date }}">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-search me-1"></i>View
+            </button>
+        </form>
+    </div>
+</div>
+
+{% if summary %}
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    {% with total_sessions=summary|length %}
+    <div class="col-md-4">
+        <div class="card stat-card blue text-center py-3">
+            <h3 class="fw-bold mb-0">{{ total_sessions }}</h3>
+            <small class="text-muted">Sessions Submitted</small>
+        </div>
+    </div>
+    {% endwith %}
+    <div class="col-md-4">
+        <div class="card stat-card green text-center py-3">
+            <h3 class="fw-bold mb-0 text-success">
+                {% for s in summary %}{{ s.present }}{% if not forloop.last %}+{% endif %}{% endfor %}
+            </h3>
+            <small class="text-muted">Total Present (all periods)</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card red text-center py-3">
+            <h3 class="fw-bold mb-0 text-danger">
+                {% for s in summary %}{{ s.absent }}{% if not forloop.last %}+{% endif %}{% endfor %}
+            </h3>
+            <small class="text-muted">Total Absent (all periods)</small>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white fw-semibold border-bottom">
+        <i class="bi bi-table me-2 text-primary"></i>Period-wise Summary
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Period</th>
+                    <th>Time</th>
+                    <th>Department</th>
+                    <th>Marked By</th>
+                    <th class="text-center">Total</th>
+                    <th class="text-center">Present</th>
+                    <th class="text-center">Absent</th>
+                    <th class="text-center">Inf. Leave</th>
+                    <th class="text-center">%</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in summary %}
+                <tr>
+                    <td><span class="badge bg-primary">P{{ item.session.period.period_number }}</span></td>
+                    <td><small>{{ item.session.period.start_time|time:"H:i" }}-{{ item.session.period.end_time|time:"H:i" }}</small></td>
+                    <td>{{ item.session.department.name }}<br><small class="badge bg-secondary">{{ item.session.department.code }}</small></td>
+                    <td><small>{{ item.session.marked_by.get_full_name|default:item.session.marked_by.username|default:"—" }}</small></td>
+                    <td class="text-center">{{ item.total }}</td>
+                    <td class="text-center"><span class="badge bg-success">{{ item.present }}</span></td>
+                    <td class="text-center"><span class="badge bg-danger">{{ item.absent }}</span></td>
+                    <td class="text-center"><span class="badge bg-warning text-dark">{{ item.informed_leave }}</span></td>
+                    <td class="text-center">
+                        <span class="fw-bold {% if item.percentage >= 75 %}text-success{% elif item.percentage >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ item.percentage }}%
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'session_detail' item.session.pk %}" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    No submitted attendance sessions found for {{ selected_date|date:"d F Y" }}.
+</div>
+{% endif %}
+{% endblock %}

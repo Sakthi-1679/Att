@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Request Edit{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4 class="mb-0"><i class="bi bi-pencil-square me-2 text-primary"></i>Request Attendance Edit</h4>
+</div>
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card mb-3">
+            <div class="card-header bg-light fw-semibold">Current Record</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-5">Student</dt>
+                    <dd class="col-7">{{ record.student.name }} ({{ record.student.register_number }})</dd>
+                    <dt class="col-5">Date</dt>
+                    <dd class="col-7">{{ record.session.date }}</dd>
+                    <dt class="col-5">Period</dt>
+                    <dd class="col-7">{{ record.session.period.period_number }}</dd>
+                    <dt class="col-5">Current Status</dt>
+                    <dd class="col-7">
+                        {% if record.status == 'present' %}<span class="badge bg-success">Present</span>
+                        {% elif record.status == 'absent' %}<span class="badge bg-danger">Absent</span>
+                        {% else %}<span class="badge bg-warning text-dark">Informed Leave</span>{% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header bg-white fw-semibold border-bottom">Request Changes</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>{% endif %}
+                    </div>
+                    {% endfor %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-send me-2"></i>Submit Request
+                        </button>
+                        <a href="{% url 'sessions_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

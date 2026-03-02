@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}College Attendance System{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a3a5c;
+            --secondary: #2d6a9f;
+            --accent: #e8f4f8;
+        }
+        body { background-color: #f0f4f8; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background: linear-gradient(135deg, var(--primary), var(--secondary)) !important; }
+        .navbar-brand { font-weight: 700; font-size: 1.2rem; }
+        .sidebar { background: #fff; min-height: calc(100vh - 56px); border-right: 1px solid #dee2e6; }
+        .sidebar .nav-link { color: #495057; border-radius: 8px; margin: 2px 8px; padding: 8px 12px; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: var(--accent); color: var(--primary); font-weight: 600; }
+        .sidebar .nav-link i { width: 20px; }
+        .main-content { padding: 24px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .card-header { border-radius: 12px 12px 0 0 !important; font-weight: 600; }
+        .stat-card { border-left: 4px solid; }
+        .stat-card.blue { border-color: #1a3a5c; }
+        .stat-card.green { border-color: #198754; }
+        .stat-card.red { border-color: #dc3545; }
+        .stat-card.yellow { border-color: #ffc107; }
+        .badge-role-admin { background: #1a3a5c; }
+        .badge-role-staff { background: #198754; }
+        .badge-role-coordinator { background: #6f42c1; }
+        .table-responsive { border-radius: 8px; overflow: hidden; }
+        .btn-primary { background: var(--primary); border-color: var(--primary); }
+        .btn-primary:hover { background: var(--secondary); border-color: var(--secondary); }
+        .page-header { border-bottom: 2px solid #dee2e6; margin-bottom: 1.5rem; padding-bottom: 0.75rem; }
+        .sidebar-section { font-size: 0.7rem; text-transform: uppercase; color: #6c757d; font-weight: 700; padding: 12px 20px 4px; letter-spacing: 0.1em; }
+        .alert { border-radius: 8px; }
+        .form-control:focus, .form-select:focus { border-color: var(--secondary); box-shadow: 0 0 0 0.2rem rgba(45,106,159,0.25); }
+        footer { background: var(--primary); color: rgba(255,255,255,0.7); padding: 12px; text-align: center; font-size: 0.85rem; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'dashboard' %}">
+            <i class="bi bi-mortarboard-fill me-2"></i>Attendance System
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item me-2">
+                    <span class="badge
+                        {% if user.role == 'admin' %}badge-role-admin
+                        {% elif user.role == 'coordinator' %}badge-role-coordinator
+                        {% else %}badge-role-staff{% endif %}
+                        rounded-pill px-3 py-2">
+                        <i class="bi bi-person-fill me-1"></i>
+                        {{ user.get_full_name|default:user.username }} &mdash; {{ user.get_role_display }}
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'logout' %}">
+                        <i class="bi bi-box-arrow-right me-1"></i>Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-2 col-md-3 p-0 sidebar d-none d-md-block">
+            <nav class="pt-3 pb-3">
+                <div class="sidebar-section">Main</div>
+                <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+
+                {% if user.role != 'admin' %}
+                <div class="sidebar-section">Attendance</div>
+                <a href="{% url 'mark_attendance' %}" class="nav-link {% if 'mark_attendance' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-check2-square"></i> Mark Attendance
+                </a>
+                <a href="{% url 'sessions_list' %}" class="nav-link {% if 'sessions_list' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-calendar3"></i> Sessions
+                </a>
+                {% endif %}
+
+                {% if user.role == 'coordinator' or user.role == 'admin' %}
+                <div class="sidebar-section">Edit Requests</div>
+                <a href="{% url 'edit_request_list' %}" class="nav-link {% if 'edit_request' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-pencil-square"></i> Edit Requests
+                </a>
+                {% endif %}
+
+                <div class="sidebar-section">Students</div>
+                <a href="{% url 'student_list' %}" class="nav-link {% if 'student' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-people-fill"></i> Students
+                </a>
+
+                <div class="sidebar-section">Reports</div>
+                <a href="{% url 'attendance_report' %}" class="nav-link {% if 'attendance_report' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-bar-chart-fill"></i> Attendance Report
+                </a>
+                <a href="{% url 'daily_summary' %}" class="nav-link {% if 'daily_summary' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-calendar-day"></i> Daily Summary
+                </a>
+
+                {% if user.role == 'admin' %}
+                <div class="sidebar-section">Attendance</div>
+                <a href="{% url 'mark_attendance' %}" class="nav-link {% if 'mark_attendance' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-check2-square"></i> Mark Attendance
+                </a>
+                <a href="{% url 'sessions_list' %}" class="nav-link {% if 'sessions_list' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-calendar3"></i> Sessions
+                </a>
+                <div class="sidebar-section">Management</div>
+                <a href="{% url 'department_list' %}" class="nav-link {% if 'department' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-building"></i> Departments
+                </a>
+                <a href="{% url 'user_list' %}" class="nav-link {% if 'user_list' in request.resolver_match.url_name or 'user_create' in request.resolver_match.url_name or 'user_edit' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-person-lines-fill"></i> Users
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-10 col-md-9 main-content">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% else %}info-circle{% endif %}-fill me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="container-fluid">
+    {% block auth_content %}{% endblock %}
+</div>
+{% endif %}
+
+<footer>
+    <small>&copy; 2024 College Attendance Management System. All rights reserved.</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

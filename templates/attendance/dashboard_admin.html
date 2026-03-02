@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-speedometer2 me-2 text-primary"></i>Admin Dashboard</h4>
+        <small class="text-muted">Today: {{ today|date:"l, d F Y" }}</small>
+    </div>
+    <div>
+        <a href="{% url 'daily_summary' %}" class="btn btn-outline-primary btn-sm me-2">
+            <i class="bi bi-calendar-day me-1"></i>Daily Summary
+        </a>
+        <a href="{% url 'attendance_report' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-bar-chart me-1"></i>Reports
+        </a>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card blue h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold">Total Students</div>
+                        <h2 class="fw-bold mb-0">{{ total_students }}</h2>
+                    </div>
+                    <div class="text-primary opacity-50"><i class="bi bi-people-fill" style="font-size:2.5rem;"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card green h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold">Present Today</div>
+                        <h2 class="fw-bold mb-0 text-success">{{ total_present_today }}</h2>
+                    </div>
+                    <div class="text-success opacity-50"><i class="bi bi-check-circle-fill" style="font-size:2.5rem;"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card red h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold">Absent Today</div>
+                        <h2 class="fw-bold mb-0 text-danger">{{ total_absent_today }}</h2>
+                    </div>
+                    <div class="text-danger opacity-50"><i class="bi bi-x-circle-fill" style="font-size:2.5rem;"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card yellow h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold">Pending Edit Requests</div>
+                        <h2 class="fw-bold mb-0 text-warning">{{ pending_edit_requests }}</h2>
+                    </div>
+                    <div class="text-warning opacity-50"><i class="bi bi-pencil-square" style="font-size:2.5rem;"></i></div>
+                </div>
+                {% if pending_edit_requests > 0 %}
+                <a href="{% url 'edit_request_list' %}" class="btn btn-sm btn-warning mt-2">Review Now</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department Summary & Quick Links -->
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-building me-2"></i>Today's Attendance by Department
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Department</th>
+                                <th class="text-center">Sessions</th>
+                                <th class="text-center">Present</th>
+                                <th class="text-center">Absent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in dept_summary %}
+                            <tr>
+                                <td><span class="fw-semibold">{{ item.dept.name }}</span><br><small class="text-muted">{{ item.dept.code }}</small></td>
+                                <td class="text-center">{{ item.sessions }}</td>
+                                <td class="text-center"><span class="badge bg-success">{{ item.present }}</span></td>
+                                <td class="text-center"><span class="badge bg-danger">{{ item.absent }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted py-4">No attendance data for today yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header bg-white fw-semibold border-bottom">
+                <i class="bi bi-lightning-fill text-warning me-2"></i>Quick Actions
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'mark_attendance' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-check2-square me-2"></i>Mark Attendance
+                    </a>
+                    <a href="{% url 'student_create' %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-person-plus me-2"></i>Add Student
+                    </a>
+                    <a href="{% url 'user_create' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-person-badge me-2"></i>Add User
+                    </a>
+                    <a href="{% url 'department_create' %}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-building-add me-2"></i>Add Department
+                    </a>
+                    <hr class="my-2">
+                    <a href="{% url 'export_excel' %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+                    </a>
+                    <a href="{% url 'export_pdf' %}" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Export PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header bg-white fw-semibold border-bottom">
+                <i class="bi bi-info-circle text-info me-2"></i>System Summary
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <small class="text-muted">Total Departments</small>
+                    <span class="badge bg-primary">{{ total_departments }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <small class="text-muted">Sessions Today</small>
+                    <span class="badge bg-secondary">{{ today_sessions }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-1">
+                    <small class="text-muted">Active Students</small>
+                    <span class="badge bg-info">{{ total_students }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

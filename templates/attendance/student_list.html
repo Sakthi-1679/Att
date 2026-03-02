@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Students{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-people-fill me-2 text-primary"></i>Students</h4>
+        <small class="text-muted">Manage student records</small>
+    </div>
+    {% if user.role == 'admin' %}
+    <a href="{% url 'student_create' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-person-plus me-2"></i>Add Student
+    </a>
+    {% endif %}
+</div>
+
+<!-- Filter -->
+{% if user.role != 'staff' %}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex gap-3 align-items-end">
+            <div>
+                <label class="form-label mb-1 small">Filter by Department</label>
+                <select name="department" class="form-select form-select-sm">
+                    <option value="">All Departments</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.pk }}" {% if selected_dept == dept.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ dept.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-sm btn-outline-primary">Filter</button>
+            <a href="{% url 'student_list' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header bg-white fw-semibold border-bottom d-flex justify-content-between">
+        <span><i class="bi bi-table me-2 text-primary"></i>{{ students.count }} Student(s)</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Reg. No.</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Email</th>
+                        <th>Parent Phone</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td><code>{{ student.register_number }}</code></td>
+                        <td><strong>{{ student.name }}</strong></td>
+                        <td><span class="badge bg-secondary">{{ student.department.code }}</span> {{ student.department.name }}</td>
+                        <td><small>{{ student.email|default:"—" }}</small></td>
+                        <td><small>{{ student.parent_phone }}</small></td>
+                        <td>
+                            {% if student.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'student_detail' student.pk %}" class="btn btn-sm btn-outline-info me-1" title="View">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            {% if user.role == 'admin' %}
+                            <a href="{% url 'student_edit' student.pk %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center text-muted py-4">No students found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

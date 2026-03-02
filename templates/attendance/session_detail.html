@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Session Detail{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-calendar-check me-2 text-primary"></i>Session Detail</h4>
+        <small class="text-muted">{{ session.department.name }} | Period {{ session.period.period_number }} | {{ session.date }}</small>
+    </div>
+    <div>
+        {% if session.is_submitted and user.role in 'coordinator,admin' %}
+        <a href="{% url 'mark_attendance' %}?date={{ session.date }}&period={{ session.period.pk }}&department={{ session.department.pk }}" class="btn btn-sm btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+        {% endif %}
+        <a href="{% url 'sessions_list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-list me-1"></i>All Sessions
+        </a>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3"><strong>Date:</strong> {{ session.date }}</div>
+            <div class="col-md-3"><strong>Period:</strong> {{ session.period.period_number }} ({{ session.period.start_time|time:"H:i" }}-{{ session.period.end_time|time:"H:i" }})</div>
+            <div class="col-md-3"><strong>Department:</strong> {{ session.department.name }}</div>
+            <div class="col-md-3"><strong>Status:</strong>
+                {% if session.is_submitted %}
+                <span class="badge bg-success">Submitted</span>
+                {% else %}
+                <span class="badge bg-warning text-dark">Draft</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white fw-semibold border-bottom">
+        Attendance Records ({{ records.count }} students)
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Reg. No.</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>SMS</th>
+                    {% if session.is_submitted and user.role in 'coordinator,admin' %}
+                    <th>Edit</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr class="{% if record.status == 'absent' %}table-danger{% elif record.status == 'present' %}table-success bg-opacity-25{% else %}table-warning bg-opacity-25{% endif %}">
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ record.student.register_number }}</td>
+                    <td>{{ record.student.name }}</td>
+                    <td>
+                        {% if record.status == 'present' %}<span class="badge bg-success">Present</span>
+                        {% elif record.status == 'absent' %}<span class="badge bg-danger">Absent</span>
+                        {% else %}<span class="badge bg-warning text-dark">Informed Leave</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if record.sms_sent %}<span class="badge bg-info">Sent</span>{% else %}—{% endif %}
+                    </td>
+                    {% if session.is_submitted and user.role in 'coordinator,admin' %}
+                    <td>
+                        <a href="{% url 'create_edit_request' record.pk %}" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-pencil me-1"></i>Request Edit
+                        </a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-4">No records.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
